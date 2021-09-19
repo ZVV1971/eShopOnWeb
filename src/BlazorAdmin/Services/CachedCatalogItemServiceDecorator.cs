@@ -33,6 +33,7 @@ namespace BlazorAdmin.Services
                 _logger.LogInformation("Loading items from local storage.");
                 if (cacheEntry.DateCreated.AddMinutes(1) > DateTime.UtcNow)
                 {
+                    _logger.LogInformation($"{cacheEntry.Value.Count} were taken from the cache");
                     return cacheEntry.Value;
                 }
                 else
@@ -45,6 +46,7 @@ namespace BlazorAdmin.Services
             var items = await _catalogItemService.ListPaged(pageSize);
             var entry = new CacheEntry<List<CatalogItem>>(items);
             await _localStorageService.SetItemAsync(key, entry);
+            _logger.LogInformation($"{items.Count} were returned from the database");
             return items;
         }
 
