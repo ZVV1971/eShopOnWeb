@@ -1,6 +1,8 @@
 ﻿using Blazored.LocalStorage;
 using BlazorShared.Interfaces;
 using BlazorShared.Models;
+//using Microsoft.ApplicationInsights;
+//using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -14,6 +16,7 @@ namespace BlazorAdmin.Services
         private readonly ILocalStorageService _localStorageService;
         private readonly CatalogItemService _catalogItemService;
         private ILogger<CachedCatalogItemServiceDecorator> _logger;
+        //readonly TelemetryClient telemetryClient;
 
         public CachedCatalogItemServiceDecorator(ILocalStorageService localStorageService,
             CatalogItemService catalogItemService,
@@ -22,6 +25,7 @@ namespace BlazorAdmin.Services
             _localStorageService = localStorageService;
             _catalogItemService = catalogItemService;
             _logger = logger;
+            //telemetryClient = new TelemetryClient(new TelemetryConfiguration("f5a68c6a-006b-46f2-a519-584904698e33"));
         }
 
         public async Task<List<CatalogItem>> ListPaged(int pageSize)
@@ -33,7 +37,8 @@ namespace BlazorAdmin.Services
                 _logger.LogInformation("Loading items from local storage.");
                 if (cacheEntry.DateCreated.AddMinutes(1) > DateTime.UtcNow)
                 {
-                    _logger.LogInformation($"{cacheEntry.Value.Count} were taken from the cache");
+                    //_logger.LogWarning($"{cacheEntry.Value.Count} were taken from the cache");
+                    //telemetryClient.TrackEvent("ListPaged_count", new Dictionary<string, string>() { { "count_items", cacheEntry.Value.Count.ToString() } });
                     return cacheEntry.Value;
                 }
                 else
@@ -46,7 +51,8 @@ namespace BlazorAdmin.Services
             var items = await _catalogItemService.ListPaged(pageSize);
             var entry = new CacheEntry<List<CatalogItem>>(items);
             await _localStorageService.SetItemAsync(key, entry);
-            _logger.LogInformation($"{items.Count} were returned from the database");
+            //_logger.LogWarning($"{items.Count} were returned from the database");
+            //telemetryClient.TrackEvent("ListPaged_count", new Dictionary<string, string>() { { "count_items", items.Count.ToString() } });
             return items;
         }
 
