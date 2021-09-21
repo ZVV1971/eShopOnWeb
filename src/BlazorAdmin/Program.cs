@@ -30,6 +30,7 @@ namespace BlazorAdmin
             builder.Services.AddScoped<ILocalStorageService, LocalStorageService>();
 
             builder.Services.AddAuthorizationCore();
+
             builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
             builder.Services.AddScoped(sp => (CustomAuthStateProvider)sp.GetRequiredService<AuthenticationStateProvider>());
 

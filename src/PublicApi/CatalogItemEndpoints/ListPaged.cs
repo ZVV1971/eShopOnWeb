@@ -1,11 +1,14 @@
 ﻿using Ardalis.ApiEndpoints;
 using AutoMapper;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.eShopWeb.ApplicationCore.Entities;
 using Microsoft.eShopWeb.ApplicationCore.Interfaces;
 using Microsoft.eShopWeb.ApplicationCore.Specifications;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +22,7 @@ namespace Microsoft.eShopWeb.PublicApi.CatalogItemEndpoints
         private readonly IAsyncRepository<CatalogItem> _itemRepository;
         private readonly IUriComposer _uriComposer;
         private readonly IMapper _mapper;
+        readonly TelemetryClient telemetryClient;
 
         public ListPaged(IAsyncRepository<CatalogItem> itemRepository,
             IUriComposer uriComposer,
@@ -27,6 +31,7 @@ namespace Microsoft.eShopWeb.PublicApi.CatalogItemEndpoints
             _itemRepository = itemRepository;
             _uriComposer = uriComposer;
             _mapper = mapper;
+            telemetryClient = new TelemetryClient();
         }
 
         [HttpGet("api/catalog-items")]
@@ -57,7 +62,10 @@ namespace Microsoft.eShopWeb.PublicApi.CatalogItemEndpoints
                 item.PictureUri = _uriComposer.ComposePicUri(item.PictureUri);
             }
             response.PageCount = int.Parse(Math.Ceiling((decimal)totalItems / request.PageSize).ToString());
+            
+            //throw new Exception("Cannot move forward");
 
+            telemetryClient.TrackEvent("ListPaged_count", new Dictionary<string, string>() { { "count_items", $"ListPaged controlled has returned {response.CatalogItems.Count} catalog items on the current page our of {response.PageCount} pages"} });
             return Ok(response);
         }
     }
