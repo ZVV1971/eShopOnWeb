@@ -14,5 +14,9 @@ namespace Microsoft.eShopWeb.Web.Pages.Basket
         {
             return Math.Round(Items.Sum(x => x.UnitPrice * x.Quantity), 2);
         }
+        public void StoreinBLOB()
+        {
+            ;
+        }
     }
 }

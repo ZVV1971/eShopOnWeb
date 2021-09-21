@@ -11,7 +11,9 @@ using Microsoft.eShopWeb.Infrastructure.Identity;
 using Microsoft.eShopWeb.Web.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace Microsoft.eShopWeb.Web.Pages.Basket
@@ -67,6 +69,23 @@ namespace Microsoft.eShopWeb.Web.Pages.Basket
                 //Redirect to Empty Basket page
                 _logger.LogWarning(emptyBasketOnCheckoutException.Message);
                 return RedirectToPage("/Basket/Index");
+            }
+
+            var httpWebRequest = (HttpWebRequest)WebRequest.Create("https://zvvazuretraining-fa.azurewebsites.net/api/Function1?code=872qksVeYTHy61dv0GPcIUzaH3DhAhTrh2xHQkILXlBTv3FYnjHhGA==");
+            httpWebRequest.ContentType = "application/json";
+            httpWebRequest.Method = "POST";
+
+            using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
+            {
+                string json = JsonExtensions.ToJson<BasketViewModel>(BasketModel);
+
+                streamWriter.Write(json);
+            }
+
+            var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+            using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+            {
+                var result = streamReader.ReadToEnd();
             }
 
             return RedirectToPage("Success");
