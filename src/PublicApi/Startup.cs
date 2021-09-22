@@ -31,7 +31,7 @@ namespace Microsoft.eShopWeb.PublicApi
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            throw new Exception("Cannot move further");
+            //throw new Exception("Cannot move further");
         }
 
         public IConfiguration Configuration { get; }
