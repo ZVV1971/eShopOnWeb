@@ -65,7 +65,7 @@ namespace Microsoft.eShopWeb.PublicApi.CatalogItemEndpoints
             
             //throw new Exception("Cannot move forward");
 
-            telemetryClient.TrackEvent("ListPaged_count", new Dictionary<string, string>() { { "count_items", $"ListPaged controlled has returned {response.CatalogItems.Count} catalog items on the current page our of {response.PageCount} pages"} });
+            //telemetryClient.TrackEvent("ListPaged_count", new Dictionary<string, string>() { { "count_items", $"ListPaged controlled has returned {response.CatalogItems.Count} catalog items on the current page our of {response.PageCount} pages"} });
             return Ok(response);
         }
     }

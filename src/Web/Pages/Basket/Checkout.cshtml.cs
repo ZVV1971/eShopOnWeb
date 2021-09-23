@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.eShopWeb.ApplicationCore.Entities.OrderAggregate;
+using Microsoft.eShopWeb.ApplicationCore.Entities;
 using Microsoft.eShopWeb.ApplicationCore.Exceptions;
 using Microsoft.eShopWeb.ApplicationCore.Interfaces;
 using Microsoft.eShopWeb.Infrastructure.Identity;
@@ -13,6 +13,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Net;
+using System.IO;
 
 namespace Microsoft.eShopWeb.Web.Pages.Basket
 {
@@ -60,7 +62,28 @@ namespace Microsoft.eShopWeb.Web.Pages.Basket
                 var updateModel = items.ToDictionary(b => b.Id.ToString(), b => b.Quantity);
                 await _basketService.SetQuantities(BasketModel.Id, updateModel);
                 await _orderService.CreateOrderAsync(BasketModel.Id, new Address("123 Main St.", "Kent", "OH", "United States", "44240"));
-                await _basketService.DeleteBasketAsync(BasketModel.Id);               
+                await _basketService.DeleteBasketAsync(BasketModel.Id);
+
+                var httpWebRequest = (HttpWebRequest)WebRequest.Create("https://zvvazuretraining-fa.azurewebsites.net/api/Function1?code=872qksVeYTHy61dv0GPcIUzaH3DhAhTrh2xHQkILXlBTv3FYnjHhGA==");
+                httpWebRequest.ContentType = "application/json";
+                httpWebRequest.Method = "POST";
+
+                using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
+                {
+                    string json =(new OrderReport(
+                        (new Address("123 Main St.", "Kent", "OH", "United States", "44240")).ToString(),
+                        BasketModel.Items.Select(t => new OrderItem(new CatalogItemOrdered(t.CatalogItemId,t.ProductName,t.PictureUrl),t.UnitPrice, t.Quantity)).ToArray()
+                        )).ToString();
+
+                    streamWriter.Write(json);
+                }
+
+                var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+                using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+                {
+                    var result = streamReader.ReadToEnd();
+                }
+
             }
             catch (EmptyBasketOnCheckoutException emptyBasketOnCheckoutException)
             {
