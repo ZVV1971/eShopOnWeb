@@ -64,7 +64,7 @@ namespace Microsoft.eShopWeb.Web.Pages.Basket
                 await _orderService.CreateOrderAsync(BasketModel.Id, new Address("123 Main St.", "Kent", "OH", "United States", "44240"));
                 await _basketService.DeleteBasketAsync(BasketModel.Id);
 
-                var httpWebRequest = (HttpWebRequest)WebRequest.Create("https://zvvazuretraining-fa.azurewebsites.net/api/Function1?code=872qksVeYTHy61dv0GPcIUzaH3DhAhTrh2xHQkILXlBTv3FYnjHhGA==");
+                var httpWebRequest = (HttpWebRequest)WebRequest.Create("https://zvvazuretraining-cosmos-af.azurewebsites.net/api/AddJson?code=M/Ezn29tW2w/oPzw8j9MQh1GkolwqWiqel4UXInDqoEOWOta5kUyOQ==");
                 httpWebRequest.ContentType = "application/json";
                 httpWebRequest.Method = "POST";
 
