@@ -64,25 +64,25 @@ namespace Microsoft.eShopWeb.Web.Pages.Basket
                 await _orderService.CreateOrderAsync(BasketModel.Id, new Address("123 Main St.", "Kent", "OH", "United States", "44240"));
                 await _basketService.DeleteBasketAsync(BasketModel.Id);
 
-                var httpWebRequest = (HttpWebRequest)WebRequest.Create("https://zvvazuretraining-cosmos-af.azurewebsites.net/api/AddJson?code=M/Ezn29tW2w/oPzw8j9MQh1GkolwqWiqel4UXInDqoEOWOta5kUyOQ==");
-                httpWebRequest.ContentType = "application/json";
-                httpWebRequest.Method = "POST";
+                //var httpWebRequest = (HttpWebRequest)WebRequest.Create("https://zvvazuretraining-cosmos-af.azurewebsites.net/api/AddJson?code=M/Ezn29tW2w/oPzw8j9MQh1GkolwqWiqel4UXInDqoEOWOta5kUyOQ==");
+                //httpWebRequest.ContentType = "application/json";
+                //httpWebRequest.Method = "POST";
 
-                using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
-                {
-                    string json =(new OrderReport(
-                        (new Address("123 Main St.", "Kent", "OH", "United States", "44240")).ToString(),
-                        BasketModel.Items.Select(t => new OrderItem(new CatalogItemOrdered(t.CatalogItemId,t.ProductName,t.PictureUrl),t.UnitPrice, t.Quantity)).ToArray()
-                        )).ToString();
+                //using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
+                //{
+                //    string json =(new OrderReport(
+                //        (new Address("123 Main St.", "Kent", "OH", "United States", "44240")).ToString(),
+                //        BasketModel.Items.Select(t => new OrderItem(new CatalogItemOrdered(t.CatalogItemId,t.ProductName,t.PictureUrl),t.UnitPrice, t.Quantity)).ToArray()
+                //        )).ToString();
 
-                    streamWriter.Write(json);
-                }
+                //    streamWriter.Write(json);
+                //}
 
-                var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-                using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
-                {
-                    var result = streamReader.ReadToEnd();
-                }
+                //var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+                //using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+                //{
+                //    var result = streamReader.ReadToEnd();
+                //}
 
             }
             catch (EmptyBasketOnCheckoutException emptyBasketOnCheckoutException)
