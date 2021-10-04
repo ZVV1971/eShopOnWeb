@@ -15,6 +15,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Net;
 using System.IO;
+using Azure.Messaging.ServiceBus;
+using Microsoft.Extensions.Configuration;
 
 namespace Microsoft.eShopWeb.Web.Pages.Basket
 {
@@ -27,18 +29,29 @@ namespace Microsoft.eShopWeb.Web.Pages.Basket
         private string _username = null;
         private readonly IBasketViewModelService _basketViewModelService;
         private readonly IAppLogger<CheckoutModel> _logger;
+        private readonly IConfiguration _configuration;
+
+        ServiceBusClient client;
+        ServiceBusSender sender;
 
         public CheckoutModel(IBasketService basketService,
             IBasketViewModelService basketViewModelService,
             SignInManager<ApplicationUser> signInManager,
             IOrderService orderService,
-            IAppLogger<CheckoutModel> logger)
+            IAppLogger<CheckoutModel> logger,
+            IConfiguration configuration)
         {
             _basketService = basketService;
             _signInManager = signInManager;
             _orderService = orderService;
             _basketViewModelService = basketViewModelService;
             _logger = logger;
+            _configuration = configuration;
+
+
+            // Create the clients that we'll use for sending and processing messages.
+            client = new ServiceBusClient(_configuration.GetValue<string>("SBConnection"));
+            sender = client.CreateSender(_configuration.GetValue<string>("orderqueuename"));
         }
 
         public BasketViewModel BasketModel { get; set; } = new BasketViewModel();
@@ -64,25 +77,49 @@ namespace Microsoft.eShopWeb.Web.Pages.Basket
                 await _orderService.CreateOrderAsync(BasketModel.Id, new Address("123 Main St.", "Kent", "OH", "United States", "44240"));
                 await _basketService.DeleteBasketAsync(BasketModel.Id);
 
-                var httpWebRequest = (HttpWebRequest)WebRequest.Create("https://zvvazuretraining-cosmos-af.azurewebsites.net/api/AddJson?code=M/Ezn29tW2w/oPzw8j9MQh1GkolwqWiqel4UXInDqoEOWOta5kUyOQ==");
-                httpWebRequest.ContentType = "application/json";
-                httpWebRequest.Method = "POST";
-
-                using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
+                try
                 {
-                    string json =(new OrderReport(
-                        (new Address("123 Main St.", "Kent", "OH", "United States", "44240")).ToString(),
-                        BasketModel.Items.Select(t => new OrderItem(new CatalogItemOrdered(t.CatalogItemId,t.ProductName,t.PictureUrl),t.UnitPrice, t.Quantity)).ToArray()
-                        )).ToString();
-
-                    streamWriter.Write(json);
+                    using ServiceBusMessageBatch messageBatch = await sender.CreateMessageBatchAsync();
+                    {
+                        string json = (new OrderReport(
+                                (new Address("123 Main St.", "Kent", "OH", "United States", "44240")).ToString(),
+                                BasketModel.Items.Select(t => new OrderItem(new CatalogItemOrdered(t.CatalogItemId, t.ProductName, t.PictureUrl), t.UnitPrice, t.Quantity)).ToArray()
+                                )).ToString();
+                        // Use the producer client to send the batch of messages to the Service Bus queue
+                        await sender.SendMessageAsync(new ServiceBusMessage(json));
+                    }
+                }
+                catch
+                {
+                    ;
+                }
+                finally
+                {
+                    // Calling DisposeAsync on client types is required to ensure that network
+                    // resources and other unmanaged objects are properly cleaned up.
+                    //await sender.DisposeAsync();
+                    //await client.DisposeAsync();
                 }
 
-                var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-                using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
-                {
-                    var result = streamReader.ReadToEnd();
-                }
+                //var httpWebRequest = (HttpWebRequest)WebRequest.Create("https://zvvazuretraining-cosmos-af.azurewebsites.net/api/AddJson?code=M/Ezn29tW2w/oPzw8j9MQh1GkolwqWiqel4UXInDqoEOWOta5kUyOQ==");
+                //httpWebRequest.ContentType = "application/json";
+                //httpWebRequest.Method = "POST";
+
+                //using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
+                //{
+                //    string json =(new OrderReport(
+                //        (new Address("123 Main St.", "Kent", "OH", "United States", "44240")).ToString(),
+                //        BasketModel.Items.Select(t => new OrderItem(new CatalogItemOrdered(t.CatalogItemId,t.ProductName,t.PictureUrl),t.UnitPrice, t.Quantity)).ToArray()
+                //        )).ToString();
+
+                //    streamWriter.Write(json);
+                //}
+
+                //var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+                //using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+                //{
+                //    var result = streamReader.ReadToEnd();
+                //}
 
             }
             catch (EmptyBasketOnCheckoutException emptyBasketOnCheckoutException)
